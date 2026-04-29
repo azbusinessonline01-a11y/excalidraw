@@ -138,15 +138,23 @@ export default function ExampleApp({
     if (!excalidrawAPI) {
       return;
     }
+
+    // Resolve immediately so the canvas never shows "Loading scene…"
+    initialStatePromiseRef.current.promise.resolve({
+      ...initialData,
+      elements: convertToExcalidrawElements(initialData.elements),
+    });
+
+    // Load the demo image asynchronously and add it after the canvas is ready
     const fetchData = async () => {
       try {
         const res = await fetch("/images/rocket.jpeg");
-        if (!res.ok) throw new Error("image fetch failed");
+        if (!res.ok) return;
         const imageData = await res.blob();
         const reader = new FileReader();
         reader.readAsDataURL(imageData);
         reader.onload = () => {
-          const imagesArray: BinaryFileData[] = [
+          excalidrawAPI.addFiles([
             {
               id: "rocket" as BinaryFileData["id"],
               dataURL: reader.result as BinaryFileData["dataURL"],
@@ -154,25 +162,10 @@ export default function ExampleApp({
               created: 1644915140367,
               lastRetrieved: 1644915140367,
             },
-          ];
-          initialStatePromiseRef.current.promise.resolve({
-            ...initialData,
-            elements: convertToExcalidrawElements(initialData.elements),
-          });
-          excalidrawAPI.addFiles(imagesArray);
-        };
-        reader.onerror = () => {
-          initialStatePromiseRef.current.promise.resolve({
-            ...initialData,
-            elements: convertToExcalidrawElements(initialData.elements),
-          });
+          ]);
         };
       } catch {
-        // If the image can't be fetched, still resolve so the canvas loads
-        initialStatePromiseRef.current.promise.resolve({
-          ...initialData,
-          elements: convertToExcalidrawElements(initialData.elements),
-        });
+        // image is optional, canvas already loaded
       }
     };
     fetchData();
