@@ -1,5 +1,123 @@
 @import "../packages/excalidraw/css/variables.module.scss";
 
+// ── Bottom dock: weld the left/center/right footer sections into one floating
+//    card so all "outside" controls live in a single cohesive row ─────────────
+.excalidraw {
+  // Unify the entire footer bar into a single pill-shaped dock
+  .layer-ui__wrapper__footer.App-menu_bottom {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 0.5rem 0.625rem;
+    pointer-events: none;
+  }
+
+  // Give each section a card background and connect them visually
+  .layer-ui__wrapper__footer-left,
+  .footer-center,
+  .layer-ui__wrapper__footer-right {
+    pointer-events: var(--ui-pointerEvents);
+  }
+
+  // The left cluster (zoom + undo/redo) gets a floating card
+  .layer-ui__wrapper__footer-left {
+    background: var(--island-bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 0 0 1px var(--color-surface-lowest),
+      0 2px 8px rgba(0, 0, 0, 0.06);
+    padding: 0.25rem 0.5rem;
+    display: flex;
+    align-items: center;
+
+    // Flatten the inner Stack so items sit in a row
+    .Stack_Col {
+      flex-direction: row;
+      gap: 0.25rem;
+      align-items: center;
+    }
+  }
+
+  // Right cluster (help button) — same card style, flush to right edge
+  .layer-ui__wrapper__footer-right {
+    background: var(--island-bg-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 0 0 1px var(--color-surface-lowest),
+      0 2px 8px rgba(0, 0, 0, 0.06);
+    padding: 0.25rem 0.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  // Center tunnel gets a subtle card only when it has content
+  .footer-center {
+    flex: 1;
+    justify-content: center;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-inline-start: 0.5rem;
+    margin-inline-end: 0.5rem;
+  }
+
+  // ── App footer content area ────────────────────────────────────────────────
+  .app-footer-content {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  // ── Save status indicator ─────────────────────────────────────────────────
+  .save-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--ui-font);
+    font-size: 0.72rem;
+    font-weight: 500;
+    border-radius: var(--border-radius-lg);
+    background: var(--island-bg-color);
+    box-shadow: 0 0 0 1px var(--color-surface-lowest);
+    padding: 0.25rem 0.6rem;
+    color: var(--color-on-surface);
+    user-select: none;
+    white-space: nowrap;
+
+    &__dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    &--saved {
+      .save-status__dot {
+        background: #22c55e;
+      }
+      .save-status__label {
+        color: var(--color-on-surface);
+        opacity: 0.7;
+      }
+    }
+
+    &--saving {
+      .save-status__dot {
+        background: #f59e0b;
+      }
+    }
+  }
+
+  // Pulsing dot animation for "Saving…"
+  @keyframes save-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.75); }
+  }
+
+  .save-status__dot--pulse {
+    animation: save-pulse 1s ease-in-out infinite;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 .excalidraw {
   --color-primary-contrast-offset: #625ee0; // to offset Chubb illusion
 
