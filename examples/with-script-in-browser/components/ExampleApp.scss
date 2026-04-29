@@ -1,80 +1,300 @@
+// ── Reset / base ───────────────────────────────────────────────────────────
+* { box-sizing: border-box; }
+
+// ── App shell: full viewport, no scroll ───────────────────────────────────
 .App {
-  font-family: sans-serif;
-  text-align: center;
-
-  .comment-avatar {
-    background: #faa2c1;
-    border-radius: 66px 67px 67px 0px;
-    width: 2rem;
-    height: 2rem;
-    padding: 4px;
-    margin: 4px;
-    img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-    }
-  }
-  .app-title {
-    margin-block-start: 0.83em;
-    margin-block-end: 0.83em;
-  }
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #f8f9fa;
 }
 
-.button-wrapper {
-  input[type="checkbox"] {
-    margin: 5px;
-  }
-  button {
-    z-index: 1;
-    height: 40px;
-    max-width: 200px;
-    margin: 10px;
-    padding: 5px;
-  }
-}
-
-.excalidraw .App-menu_top .buttonList {
-  display: flex;
-}
-
+// ── Canvas wrapper: fill everything ───────────────────────────────────────
 .excalidraw-wrapper {
-  height: 800px;
-  margin: 50px;
   position: relative;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
-:root[dir="ltr"]
-  .excalidraw
-  .layer-ui__wrapper
-  .zen-mode-transition.App-menu_bottom--transition-left {
-  transform: none;
-}
-
-.excalidraw .selected-shape-actions {
-  text-align: left;
-}
-
-.export-wrapper {
-  display: flex;
-  flex-direction: column;
-  margin: 50px;
-
-  &__checkbox {
-    display: flex;
+// ── Comment overlay ────────────────────────────────────────────────────────
+.comment-avatar {
+  background: #faa2c1;
+  border-radius: 66px 67px 67px 0;
+  width: 2rem;
+  height: 2rem;
+  padding: 4px;
+  margin: 4px;
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
   }
 }
 
-.excalidraw {
-  --color-primary: #faa2c1;
-  --color-primary-darker: #f783ac;
-  --color-primary-darkest: #e64980;
-  --color-primary-light: #fcc2d7;
+textarea.comment {
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  resize: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  outline: none;
+  &:focus { border-color: #6c63ff; }
+}
 
-  button.custom-element {
-    width: 2rem;
-    height: 2rem;
+// ── Settings trigger button (floating gear) ────────────────────────────────
+.settings-trigger {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 200;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  color: #495057;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+  }
+
+  &:hover {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// ── Semi-transparent backdrop ──────────────────────────────────────────────
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  background: transparent;
+}
+
+// ── Settings panel ─────────────────────────────────────────────────────────
+.settings-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  width: 280px;
+  background: #fff;
+  box-shadow: -2px 0 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
+  &--open {
+    transform: translateX(0);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #868e96;
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #868e96;
+    font-size: 0.9rem;
+    padding: 4px 6px;
+    border-radius: 6px;
+    line-height: 1;
+    &:hover { background: #f1f3f5; color: #212529; }
+  }
+
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0 24px;
+    scrollbar-width: thin;
+    scrollbar-color: #dee2e6 transparent;
+  }
+}
+
+// ── Settings groups ────────────────────────────────────────────────────────
+.settings-group {
+  padding: 10px 16px;
+
+  & + & {
+    border-top: 1px solid #f1f3f5;
+  }
+
+  &__label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #adb5bd;
+    margin-bottom: 8px;
+  }
+}
+
+// ── Coordinate display ─────────────────────────────────────────────────────
+.settings-coords {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: #868e96;
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+// ── Action buttons ─────────────────────────────────────────────────────────
+.settings-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  button {
+    flex: 1 1 auto;
+    min-width: 80px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid #e9ecef;
+    border-radius: 7px;
+    background: #f8f9fa;
+    color: #343a40;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+    white-space: nowrap;
+
+    &:hover {
+      background: #e9ecef;
+      border-color: #ced4da;
+    }
+
+    &:active {
+      background: #dee2e6;
+    }
+  }
+}
+
+// ── Toggle rows ────────────────────────────────────────────────────────────
+.settings-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  cursor: pointer;
+  user-select: none;
+
+  span {
+    font-size: 0.8rem;
+    color: #343a40;
+  }
+}
+
+// ── Toggle switch ──────────────────────────────────────────────────────────
+.toggle-switch {
+  position: relative;
+  width: 32px;
+  height: 18px;
+  border-radius: 18px;
+  border: none;
+  cursor: pointer;
+  background: #dee2e6;
+  transition: background 0.18s;
+  flex-shrink: 0;
+  padding: 0;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.18s;
+  }
+
+  &--on {
+    background: #6c63ff;
+
+    &::after {
+      transform: translateX(14px);
+    }
+  }
+}
+
+// ── Export preview thumbnails ──────────────────────────────────────────────
+.export-previews {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .export-svg,
+  img {
+    max-width: 100%;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    background: #f8f9fa;
+    min-height: 0;
+
+    svg { max-width: 100%; height: auto; }
+  }
+
+  img:not([src]) { display: none; }
+}
+
+// ── Excalidraw theme overrides ─────────────────────────────────────────────
+.excalidraw {
+  .App-menu_top .buttonList {
+    display: flex;
+  }
+
+  .selected-shape-actions {
+    text-align: left;
+  }
+
+  .layer-ui__wrapper__footer.App-menu_bottom {
+    align-items: stretch;
+  }
+
+  .App-toolbar-container .mobile-misc-tools-container {
+    position: absolute;
   }
 
   .custom-footer,
@@ -82,11 +302,9 @@
     padding: 0.1rem;
     margin: 0 8px;
   }
-  .layer-ui__wrapper__footer.App-menu_bottom {
-    align-items: stretch;
-  }
-  // till its merged in OSS
-  .App-toolbar-container .mobile-misc-tools-container {
-    position: absolute;
+
+  button.custom-element {
+    width: 2rem;
+    height: 2rem;
   }
 }

@@ -50,6 +50,12 @@ const filesStore = createStore("files-db", "files-store");
 
 export const localStorageQuotaExceededAtom = atom(false);
 
+/** null = never saved, number = timestamp of last successful save */
+export const lastSavedAtom = atom<number | null>(null);
+
+/** true while a debounced save is pending but not yet written */
+export const isSavingAtom = atom(false);
+
 class LocalFileManager extends FileManager {
   clearObsoleteFiles = async (opts: { currentFileIds: FileId[] }) => {
     await entries(filesStore).then((entries) => {
@@ -96,6 +102,8 @@ const saveDataStateToLocalStorage = (
       JSON.stringify(_appState),
     );
     updateBrowserStateVersion(STORAGE_KEYS.VERSION_DATA_STATE);
+    appJotaiStore.set(lastSavedAtom, Date.now());
+    appJotaiStore.set(isSavingAtom, false);
     if (localStorageQuotaExceeded) {
       appJotaiStore.set(localStorageQuotaExceededAtom, false);
     }
@@ -142,6 +150,7 @@ export class LocalData {
   ) => {
     // we need to make the `isSavePaused` check synchronously (undebounced)
     if (!this.isSavePaused()) {
+      appJotaiStore.set(isSavingAtom, true);
       this._save(elements, appState, files, onFilesSaved);
     }
   };
